@@ -22,7 +22,7 @@
 
 #include "trpc/common/trpc_plugin.h"
 
-#include "trpc/overload_control/smooth_filter/server_flow_controller_server_filter.h"
+#include "trpc/overload_control/smooth_filter/overload_controller_filter.h"
 namespace test {
 
 namespace helloworld {
@@ -45,7 +45,7 @@ class HelloWorldServer : public ::trpc::TrpcApp {
 
   int RegisterPlugins() {
   // register server-side filter
-  auto server_filter = std::make_shared<trpc::overload_control::Server_FlowControlServerFilter>();
+  auto server_filter = std::make_shared<trpc::overload_control::OverloadControlFilter>();
   trpc::TrpcPlugin::GetInstance()->RegisterServerFilter(server_filter);
   return 0;
   }
