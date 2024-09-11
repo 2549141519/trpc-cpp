@@ -16,7 +16,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "trpc/overload_control/smooth_filter/smooth_limit_overload_controller.h"
+#include "trpc/overload_control/smooth_filter/smooth_limits_overload_controller.h"
 #include "trpc/overload_control/common/report.h"
 #include "trpc/overload_control/flow_control/flow_controller_conf.h"
 #include "trpc/overload_control/flow_control/flow_controller_generator.h"
@@ -83,8 +83,8 @@ bool SmoothLimitOverloadController::BeforeSchedule(const ServerContextPtr& conte
 }
 
 void SmoothLimitOverloadController::Destroy(){
-    for(auto smooth_limit_iter : smooth_limit_){
-        smooth_limit_iter.second.reset();
+    for(auto smooth_limits_iter : smooth_limits_){
+        smooth_limits_iter.second.reset();
     }
 }
 
@@ -96,14 +96,14 @@ SmoothLimitOverloadController::SmoothLimitOverloadController()
 {}
 
 void SmoothLimitOverloadController::RegisterLimit(const std::string& name,FlowControllerPtr limiter){
-    if(smooth_limit_.count(name) == 0)
-        smooth_limit_[name] = limiter;
+    if(smooth_limits_.count(name) == 0)
+        smooth_limits_[name] = limiter;
 }
 
 FlowControllerPtr SmoothLimitOverloadController::GetFlowController(const std::string& name) {
   FlowControllerPtr ret = nullptr;
-  auto iter = smooth_limit_.find(name);
-  if (iter != smooth_limit_.end()) {
+  auto iter = smooth_limits_.find(name);
+  if (iter != smooth_limits_.end()) {
     ret = iter->second;
   }
   return ret;
