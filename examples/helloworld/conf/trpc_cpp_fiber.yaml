@@ -20,7 +20,7 @@ server:
       ip: 0.0.0.0                     # Service bind ip
       port: 12345  
       filter:
-        - my_flow_control         # Service bind port
+        - server_flow_control         # Service bind port
 
 # Plugin configuration.
 plugins:
