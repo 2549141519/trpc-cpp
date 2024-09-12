@@ -10,7 +10,7 @@ cc_binary(
     name = "helloworld_svr",
     srcs = ["helloworld_server.cc"],
     deps = [
-        "//trpc/overload_control/smooth_filter:window_limit_overload_controller_filter",
+        "//trpc/overload_control/window_limit_control:window_limit_overload_controller_filter",
         "//trpc/common:trpc_plugin",
         ":greeter_service",
         ":helloworld_proto",

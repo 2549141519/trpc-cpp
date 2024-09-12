@@ -13,7 +13,7 @@
 
 #ifdef TRPC_BUILD_INCLUDE_OVERLOAD_CONTROL
 
-#include "trpc/overload_control/flow_control/flow_controller_server_filter.h"
+#include "trpc/overload_control/window_limit_control/window_limit_overload_controller.h"
 
 #include <memory>
 #include <utility>
@@ -27,8 +27,8 @@
 #include "trpc/common/config/trpc_config.h"
 #include "trpc/codec/testing/protocol_testing.h"
 #include "trpc/overload_control/flow_control/flow_controller.h"
-#include "trpc/overload_control/smooth_filter/window_limit_overload_controller_filter.h"
-#include "trpc/overload_control/smooth_filter/window_limit_overload_controller.h"
+#include "trpc/overload_control/flow_control/flow_controller_server_filter.h"
+#include "trpc/overload_control/window_limit_control/window_limit_overload_controller_filter.h"
 
 namespace trpc::overload_control {
 
@@ -44,7 +44,7 @@ class MockFlowControl : public FlowController {
 class FlowControlServerFilterTestFixture : public ::testing::Test {
  public:
   static void SetUpTestCase() {
-    trpc::TrpcConfig::GetInstance()->Init("./trpc/overload_control/smooth_filter/filter_test.yaml");
+    trpc::TrpcConfig::GetInstance()->Init("./trpc/overload_control/window_limit_control/filter_test.yaml");
     trpc::TrpcPlugin::GetInstance()->RegisterPlugins();
   }
 

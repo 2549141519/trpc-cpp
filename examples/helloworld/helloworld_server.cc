@@ -22,7 +22,7 @@
 
 #include "trpc/common/trpc_plugin.h"
 
-#include "trpc/overload_control/smooth_filter/window_limit_overload_controller_filter.h"
+#include "trpc/overload_control/window_limit_control/window_limit_overload_controller_filter.h"
 namespace test {
 
 namespace helloworld {

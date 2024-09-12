@@ -13,22 +13,24 @@
 
 #ifdef TRPC_BUILD_INCLUDE_OVERLOAD_CONTROL
 
-#include "trpc/overload_control/smooth_filter/window_limit_overload_controller.h"
+#include "trpc/overload_control/window_limit_control/window_limit_overload_controller.h"
 
 #include <cmath>
 #include <chrono>
 #include <cstdint>
 
+#include "trpc/log/trpc_log.h"
 #include "trpc/util/log/logging.h"
+#include "trpc/common/config/trpc_config.h"
 #include "trpc/overload_control/common/report.h"
-#include "trpc/overload_control/flow_control/flow_controller_conf.h"
+#include "trpc/overload_control/overload_control_defs.h"
 #include "trpc/overload_control/flow_control/flow_controller_generator.h"
 
 namespace trpc::overload_control {
 
 bool WindowLimitOverloadController::Init() {
   std::vector<FlowControlLimiterConf> flow_control_confs;
-  LoadFlowControlLimiterConf(flow_control_confs);
+  LoadWindowLimitControlConf(flow_control_confs);
   for (const auto& flow_conf : flow_control_confs) {
     if (!flow_conf.service_limiter.empty()) {
       FlowControllerPtr service_controller =
@@ -36,7 +38,7 @@ bool WindowLimitOverloadController::Init() {
       if (service_controller) {
         RegisterLimiter(flow_conf.service_name, service_controller);
       } else {
-        TRPC_FMT_ERROR("create service flow control fail|service_name: {}, |service_limiter: {}",
+        TRPC_FMT_ERROR("create service window limit control fail|service_name: {}, |service_limiter: {}",
                        flow_conf.service_name, flow_conf.service_limiter);
       }
     }
@@ -49,7 +51,7 @@ bool WindowLimitOverloadController::Init() {
         if (func_controller) {
           RegisterLimiter(service_func_name, func_controller);
         } else {
-          TRPC_FMT_ERROR("create func flow control fail|service_name:{}|func_name:{}|limiter:{}",
+          TRPC_FMT_ERROR("create func window limit control fail|service_name:{}|func_name:{}|limiter:{}",
                          flow_conf.service_name, func_conf.name, func_conf.limiter);
         }
       }
@@ -69,14 +71,14 @@ bool WindowLimitOverloadController::BeforeSchedule(const ServerContextPtr& conte
   // flow control strategy
   if (service_controller && service_controller->CheckLimit(context)) {
     context->SetStatus(
-        Status(TrpcRetCode::TRPC_SERVER_OVERLOAD_ERR, 0, "rejected by server local flow overload control"));
-    TRPC_FMT_ERROR_EVERY_SECOND("rejected by server local flow overload , service name: {}", context->GetCalleeName());
+        Status(TrpcRetCode::TRPC_SERVER_OVERLOAD_ERR, 0, "rejected by server window limit overload control"));
+    TRPC_FMT_ERROR_EVERY_SECOND("rejected by server window limit overload , service name: {}", context->GetCalleeName());
     return false;
   }
   if (func_controller && func_controller->CheckLimit(context)) {
     context->SetStatus(
-        Status(TrpcRetCode::TRPC_SERVER_OVERLOAD_ERR, 0, "rejected by server local flow overload control"));
-    TRPC_FMT_ERROR_EVERY_SECOND("rejected by server local flow overload , service name: {}, func name: {}",
+        Status(TrpcRetCode::TRPC_SERVER_OVERLOAD_ERR, 0, "rejected by server window limit overload control"));
+    TRPC_FMT_ERROR_EVERY_SECOND("rejected by server window limit overload , service name: {}, func name: {}",
                                 context->GetCalleeName(), context->GetFuncName());
     return false;
   }
@@ -90,7 +92,7 @@ void WindowLimitOverloadController::Destroy() {
   smooth_limits_.clear();
 }
 
-void WindowLimitOverloadController::Stop(){
+void WindowLimitOverloadController::Stop() {
     // nothing to do,The time thread automatically stops.
 };
 
@@ -112,6 +114,18 @@ FlowControllerPtr WindowLimitOverloadController::GetLimiter(const std::string& n
 // The destructor does nothing, but the stop method in public needs to set the timed task to join and make it invalid
 // The user must stop before calling destroy
 WindowLimitOverloadController::~WindowLimitOverloadController() {}
+
+void WindowLimitOverloadController::LoadWindowLimitControlConf(std::vector<FlowControlLimiterConf>& flow_control_confs) {
+  YAML::Node flow_control_nodes;
+  FlowControlLimiterConf flow_control_conf;
+  if (ConfigHelper::GetInstance()->GetConfig({"plugins", kWindowLimitOverloadCtrConfField, kWindowLimitControlName},
+                                             flow_control_nodes)) {
+    for (const auto& node : flow_control_nodes) {
+      auto flow_control_conf = node.as<FlowControlLimiterConf>();
+      flow_control_confs.emplace_back(std::move(flow_control_conf));
+    }
+  }
+}
 
 }  // namespace trpc::overload_control
 #endif
